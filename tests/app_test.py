@@ -1,4 +1,5 @@
 import pytest
+import json
 import os
 from pathlib import Path
 from project.app import app, init_db
@@ -33,14 +34,8 @@ def logout(client):
 	return client.get('/logout', follow_redirects=True)
 
 
-def test_index():
+def test_index(client):
 	"""Testa rota index"""
-	# tester = app.test_client()
-	# response = tester.get('/', content_type="html/text")
-
-	# assert response.status_code == 200
-	# assert response.data == b"Hello World!"
-
 	response = client.get("/", content_type="html/text")
 	assert response.status_code == 200
 
@@ -73,6 +68,7 @@ def test_login_logout(client):
 	rv = login(client, app.config["USERNAME"], app.config["PASSWORD"] + "x")
 	assert b"Senha invalida" in rv.data
 
+
 def test_message(client):
 	"""Testa se o usuario consegue enviar mensagem"""
 	login(client, app.config["USERNAME"], app.config["PASSWORD"])
@@ -85,3 +81,10 @@ def test_message(client):
 	assert b"Nenhuma entrada encontrada" not in rv.data
 	assert b"&lt;Hello&gt;" in rv.data
 	assert b"<strong>HTML</strong> permitido" in rv.data
+
+
+def test_delete_message(client):
+	"""Testa se a mensagem foi deletada"""
+	rv = client.get('/delete/1')
+	data = json.loads(rv.data)
+	assert data['status'] == 1
